@@ -1,0 +1,60 @@
+{
+  "name": "ttt-cli",
+  "version": "0.1.0",
+  "description": "TinyTalkingTodos CLI - Manage your todo lists from the command line",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ttt": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "todo",
+    "todos",
+    "cli",
+    "tinybase",
+    "productivity",
+    "task",
+    "task-manager"
+  ],
+  "author": "TinyTalkingTodos",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joshuacrowley/ttt-cli.git"
+  },
+  "homepage": "https://github.com/joshuacrowley/ttt-cli#readme",
+  "bugs": {
+    "url": "https://github.com/joshuacrowley/ttt-cli/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cli-boxes": "^4.0.1",
+    "commander": "^12.1.0",
+    "ink": "^6.6.0",
+    "ink-big-text": "^2.0.0",
+    "ink-gradient": "^3.0.0",
+    "ink-spinner": "^5.0.0",
+    "open": "^11.0.0",
+    "react": "^19.2.4",
+    "tinybase": "^7.3.2",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.57",
+    "@types/react": "^19.2.10",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.0.4"
+  }
+}
