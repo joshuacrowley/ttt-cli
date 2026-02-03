@@ -12,8 +12,13 @@ import {
 import type { ITttClient, IpcRequest, IpcResponse, BatchAddItem, BatchUpdateItem, BatchUpdateResult, ListFields, ListUpdateResult } from "./types.js";
 import type { List, Todo } from "./api.js";
 
+// Load version from package.json
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const packageJson = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf-8")
+);
+const CLI_VERSION: string = packageJson.version;
 
 const SPAWN_TIMEOUT_MS = 15_000;
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -33,6 +38,20 @@ export class DaemonClient implements ITttClient {
     // Try to connect to existing daemon
     try {
       await this.connectToSocket(socketPath);
+      
+      // Check version compatibility
+      const info = await this.ping();
+      if (info.version && info.version !== CLI_VERSION) {
+        // Version mismatch - restart daemon
+        await this.shutdown();
+        await this.disconnect();
+        
+        // Small delay to allow cleanup
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        
+        await this.spawnDaemon();
+        await this.connectToSocket(socketPath);
+      }
       return;
     } catch {
       if (!autoStart) throw new Error("Daemon is not running");
@@ -122,8 +141,8 @@ export class DaemonClient implements ITttClient {
     await this.call("restoreTodo", [todo]);
   }
 
-  async ping(): Promise<{ pid: number; uptime: number }> {
-    return (await this.call("ping", [])) as { pid: number; uptime: number };
+  async ping(): Promise<{ pid: number; uptime: number; version?: string }> {
+    return (await this.call("ping", [])) as { pid: number; uptime: number; version?: string };
   }
 
   async shutdown(): Promise<void> {

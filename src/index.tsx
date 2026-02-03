@@ -9,6 +9,16 @@ import { DaemonClient } from "./daemon-client.js";
 import type { ITttClient } from "./types.js";
 import { getDaemonPidPath, loadConfig, getConfigPath } from "./config.js";
 import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+
+// Load version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const packageJson = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf-8")
+);
+const VERSION: string = packageJson.version;
 import {
   WelcomeScreen,
   ListLsView,
@@ -71,7 +81,7 @@ const program = new Command();
 program
   .name("ttt")
   .description("TinyTalkingTodos CLI - Manage your todo lists from the command line")
-  .version("0.1.0")
+  .version(VERSION)
   .action(async () => {
     // Show welcome screen when no command is provided
     await renderView(<WelcomeScreen />);
@@ -194,6 +204,7 @@ daemonCmd
               isRunning: true,
               pid: info.pid,
               uptime: info.uptime,
+              version: info.version,
             };
           } catch {
             // Check for stale PID file

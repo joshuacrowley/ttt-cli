@@ -1,12 +1,22 @@
 import * as net from "net";
 import * as fs from "fs";
+import * as path from "path";
+import * as url from "url";
 import { TttClient } from "./api.js";
 import {
   ensureConfigDir,
   getDaemonSocketPath,
   getDaemonPidPath,
+  getDaemonVersionPath,
 } from "./config.js";
 import type { IpcRequest, IpcResponse } from "./types.js";
+
+// Load version from package.json
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const packageJson = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf-8")
+);
+const VERSION: string = packageJson.version;
 
 const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 const startedAt = Date.now();
@@ -30,6 +40,7 @@ function setupIdleTimer(): void {
 function shutdown(): void {
   const socketPath = getDaemonSocketPath();
   const pidPath = getDaemonPidPath();
+  const versionPath = getDaemonVersionPath();
 
   if (server) {
     server.close();
@@ -43,6 +54,9 @@ function shutdown(): void {
   try {
     fs.unlinkSync(pidPath);
   } catch {}
+  try {
+    fs.unlinkSync(versionPath);
+  } catch {}
   process.exit(0);
 }
 
@@ -55,6 +69,7 @@ async function handleRequest(req: IpcRequest): Promise<IpcResponse> {
         result = {
           pid: process.pid,
           uptime: Math.floor((Date.now() - startedAt) / 1000),
+          version: VERSION,
         };
         break;
       case "shutdown":
@@ -173,6 +188,7 @@ async function main(): Promise<void> {
   ensureConfigDir();
   const socketPath = getDaemonSocketPath();
   const pidPath = getDaemonPidPath();
+  const versionPath = getDaemonVersionPath();
 
   // Clean up stale socket file
   try {
@@ -187,8 +203,9 @@ async function main(): Promise<void> {
   server = net.createServer(handleConnection);
 
   server.listen(socketPath, () => {
-    // Write PID file
+    // Write PID and version files
     fs.writeFileSync(pidPath, String(process.pid));
+    fs.writeFileSync(versionPath, VERSION);
 
     // Signal parent that we're ready
     if (process.send) {

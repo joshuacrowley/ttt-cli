@@ -525,6 +525,7 @@ interface DaemonStatusData {
   isRunning: boolean;
   pid?: number;
   uptime?: number;
+  version?: string;
   stalePid?: number;
 }
 
@@ -542,7 +543,7 @@ export const DaemonStatusView: React.FC<DaemonStatusViewProps> = ({ getData }) =
           {data.isRunning ? (
             <>
               <Text color="green">● Daemon running</Text>
-              <Text>pid: {data.pid} uptime: {data.uptime}s</Text>
+              <Text>pid: {data.pid} uptime: {data.uptime}s{data.version ? ` v${data.version}` : ""}</Text>
             </>
           ) : (
             <>

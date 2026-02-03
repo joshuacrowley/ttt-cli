@@ -12,6 +12,7 @@ const CONFIG_DIR = path.join(os.homedir(), ".ttt");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 const DAEMON_SOCKET = path.join(CONFIG_DIR, "daemon.sock");
 const DAEMON_PID = path.join(CONFIG_DIR, "daemon.pid");
+const DAEMON_VERSION = path.join(CONFIG_DIR, "daemon.version");
 
 export function getConfigDir(): string {
   return CONFIG_DIR;
@@ -61,4 +62,8 @@ export function getDaemonSocketPath(): string {
 
 export function getDaemonPidPath(): string {
   return DAEMON_PID;
+}
+
+export function getDaemonVersionPath(): string {
+  return DAEMON_VERSION;
 }
