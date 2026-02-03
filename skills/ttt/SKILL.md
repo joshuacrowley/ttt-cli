@@ -8,9 +8,13 @@ metadata: {"openclaw": {"emoji": "✅", "requires": {"bins": ["ttt"]}, "homepage
 
 Use `ttt` to manage todo lists and items from the command line. The CLI syncs with TinyTalkingTodos in real-time.
 
-## Installation (Development)
+## Installation
 
-The ttt CLI is not yet published. Install locally:
+```bash
+npm install -g @ojschwa/ttt-cli
+```
+
+Or install locally for development:
 
 ```bash
 cd /path/to/talking-todo/ttt-cli
@@ -19,7 +23,7 @@ npm run build
 npm link
 ```
 
-This creates a global `ttt` symlink. Verify with `ttt --help`.
+Verify with `ttt --help`.
 
 ## Authentication
 
@@ -134,7 +138,7 @@ ttt todo add "Buy avocados" --list "Groceries"
 With options:
 ```bash
 ttt todo add "Doctor appointment" --list "Health" \
-  --date 2025-02-15 \
+  --date 2026-02-15 \
   --time 14:30 \
   --notes "Bring insurance card"
 
@@ -153,7 +157,7 @@ All `--list` options:
 | Option | Description | Example |
 |--------|-------------|---------|
 | `--notes <text>` | Additional notes | `--notes "organic preferred"` |
-| `--date <YYYY-MM-DD>` | Due date | `--date 2025-02-15` |
+| `--date <YYYY-MM-DD>` | Due date | `--date 2026-02-15` |
 | `--time <HH:MM>` | Due time | `--time 14:30` |
 | `--url <url>` | Associated URL | `--url "https://..."` |
 | `--emoji <emoji>` | Item emoji | `--emoji "🎉"` |
@@ -183,7 +187,7 @@ ttt todo undone todo-abc123
 
 ```bash
 ttt todo update todo-abc123 --text "New text"
-ttt todo update todo-abc123 --category "Urgent" --date 2025-02-15
+ttt todo update todo-abc123 --category "Urgent" --date 2026-02-15
 ttt todo update todo-abc123 --done   # mark as done
 ttt todo update todo-abc123 --not-done  # mark as not done
 ```
