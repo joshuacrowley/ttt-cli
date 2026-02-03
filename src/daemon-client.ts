@@ -9,8 +9,7 @@ import {
   getDaemonSocketPath,
   getDaemonPidPath,
 } from "./config.js";
-import type { ITttClient } from "./types.js";
-import type { IpcRequest, IpcResponse } from "./types.js";
+import type { ITttClient, IpcRequest, IpcResponse, BatchAddItem, BatchUpdateItem, BatchUpdateResult, ListFields, ListUpdateResult } from "./types.js";
 import type { List, Todo } from "./api.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -71,6 +70,18 @@ export class DaemonClient implements ITttClient {
     return (await this.call("createList", [name, options || {}])) as string;
   }
 
+  async updateList(listId: string, fields: ListFields): Promise<ListUpdateResult> {
+    return (await this.call("updateList", [listId, fields])) as ListUpdateResult;
+  }
+
+  async deleteList(listId: string): Promise<List> {
+    return (await this.call("deleteList", [listId])) as List;
+  }
+
+  async restoreList(list: List): Promise<void> {
+    await this.call("restoreList", [list]);
+  }
+
   async addTodo(
     listId: string,
     text: string,
@@ -79,8 +90,36 @@ export class DaemonClient implements ITttClient {
     return (await this.call("addTodo", [listId, text, fields || {}])) as string;
   }
 
-  async markTodoDone(todoId: string): Promise<void> {
-    await this.call("markTodoDone", [todoId]);
+  async markTodoDone(todoId: string): Promise<Todo> {
+    return (await this.call("markTodoDone", [todoId])) as Todo;
+  }
+
+  async deleteTodo(todoId: string): Promise<Todo> {
+    return (await this.call("deleteTodo", [todoId])) as Todo;
+  }
+
+  async updateTodo(todoId: string, fields: Partial<Omit<Todo, "id" | "list">>): Promise<BatchUpdateResult> {
+    return (await this.call("updateTodo", [todoId, fields])) as BatchUpdateResult;
+  }
+
+  async markTodoUndone(todoId: string): Promise<Todo> {
+    return (await this.call("markTodoUndone", [todoId])) as Todo;
+  }
+
+  async batchAddTodos(listId: string, items: BatchAddItem[]): Promise<string[]> {
+    return (await this.call("batchAddTodos", [listId, items])) as string[];
+  }
+
+  async batchUpdateTodos(updates: BatchUpdateItem[]): Promise<BatchUpdateResult[]> {
+    return (await this.call("batchUpdateTodos", [updates])) as BatchUpdateResult[];
+  }
+
+  async batchDeleteTodos(todoIds: string[]): Promise<void> {
+    await this.call("batchDeleteTodos", [todoIds]);
+  }
+
+  async restoreTodo(todo: Todo): Promise<void> {
+    await this.call("restoreTodo", [todo]);
   }
 
   async ping(): Promise<{ pid: number; uptime: number }> {

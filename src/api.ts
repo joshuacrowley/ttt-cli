@@ -2,7 +2,7 @@ import { createMergeableStore, type MergeableStore } from "tinybase";
 import { createWsSynchronizer } from "tinybase/synchronizers/synchronizer-ws-client";
 import WebSocket from "ws";
 import { loadConfig } from "./config.js";
-import type { ITttClient } from "./types.js";
+import type { ITttClient, BatchAddItem, BatchUpdateItem, BatchUpdateResult, ListFields, ListUpdateResult } from "./types.js";
 
 const SERVER = "wss://worker.tinytalkingtodos.com";
 const SERVER_PATH = "/sync";
@@ -179,6 +179,65 @@ export class TttClient implements ITttClient {
     return id;
   }
 
+  async updateList(listId: string, fields: ListFields): Promise<ListUpdateResult> {
+    const row = this.store.getRow("lists", listId);
+    if (!row) {
+      throw new Error(`List not found: ${listId}`);
+    }
+
+    // Capture previous values for undo
+    const previousFields: Partial<List> = {};
+    for (const key of Object.keys(fields)) {
+      previousFields[key as keyof List] = row[key] as any;
+    }
+
+    // Apply updates
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) {
+        this.store.setCell("lists", listId, key, value as any);
+      }
+    }
+
+    return { id: listId, previousFields };
+  }
+
+  async deleteList(listId: string): Promise<List> {
+    const row = this.store.getRow("lists", listId);
+    if (!row) {
+      throw new Error(`List not found: ${listId}`);
+    }
+
+    // Capture list data for undo before deleting
+    const deletedList: List = {
+      id: listId,
+      name: row.name as string || "",
+      purpose: row.purpose as string,
+      systemPrompt: row.systemPrompt as string,
+      backgroundColour: row.backgroundColour as string,
+      icon: row.icon as string,
+      type: row.type as string,
+      template: row.template as string,
+    };
+
+    this.store.delRow("lists", listId);
+    return deletedList;
+  }
+
+  async restoreList(list: List): Promise<void> {
+    const { id, ...fields } = list;
+    this.store.setRow("lists", id, {
+      name: fields.name || "",
+      purpose: fields.purpose || "",
+      systemPrompt: fields.systemPrompt || "",
+      backgroundColour: fields.backgroundColour || "blue",
+      icon: fields.icon || "",
+      number: 0,
+      template: fields.template || "",
+      code: "",
+      type: fields.type || "Info",
+    });
+  }
+
   async addTodo(listId: string, text: string, fields: Partial<Omit<Todo, "id" | "list" | "text" | "done">> = {}): Promise<string> {
     const id = `todo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -203,12 +262,204 @@ export class TttClient implements ITttClient {
     return id;
   }
 
-  async markTodoDone(todoId: string): Promise<void> {
-    const todo = this.store.getRow("todos", todoId);
-    if (!todo) {
+  async markTodoDone(todoId: string): Promise<Todo> {
+    const row = this.store.getRow("todos", todoId);
+    if (!row) {
       throw new Error(`Todo not found: ${todoId}`);
     }
 
+    // Capture previous state for undo
+    const previousTodo: Todo = {
+      id: todoId,
+      list: row.list as string || "",
+      text: row.text as string || "",
+      done: row.done as boolean,
+      notes: row.notes as string,
+      date: row.date as string,
+      time: row.time as string,
+      url: row.url as string,
+      emoji: row.emoji as string,
+      email: row.email as string,
+      streetAddress: row.streetAddress as string,
+      number: row.number as number,
+      amount: row.amount as number,
+      fiveStarRating: row.fiveStarRating as number,
+      type: row.type as string,
+      category: row.category as string,
+    };
+
     this.store.setCell("todos", todoId, "done", true);
+    return previousTodo;
+  }
+
+  async deleteTodo(todoId: string): Promise<Todo> {
+    const row = this.store.getRow("todos", todoId);
+    if (!row) {
+      throw new Error(`Todo not found: ${todoId}`);
+    }
+
+    // Capture todo data for undo before deleting
+    const deletedTodo: Todo = {
+      id: todoId,
+      list: row.list as string || "",
+      text: row.text as string || "",
+      done: row.done as boolean,
+      notes: row.notes as string,
+      date: row.date as string,
+      time: row.time as string,
+      url: row.url as string,
+      emoji: row.emoji as string,
+      email: row.email as string,
+      streetAddress: row.streetAddress as string,
+      number: row.number as number,
+      amount: row.amount as number,
+      fiveStarRating: row.fiveStarRating as number,
+      type: row.type as string,
+      category: row.category as string,
+    };
+
+    this.store.delRow("todos", todoId);
+    return deletedTodo;
+  }
+
+  async updateTodo(todoId: string, fields: Partial<Omit<Todo, "id" | "list">>): Promise<BatchUpdateResult> {
+    const row = this.store.getRow("todos", todoId);
+    if (!row) {
+      throw new Error(`Todo not found: ${todoId}`);
+    }
+
+    // Capture previous values for undo
+    const previousFields: Partial<Todo> = {};
+    for (const key of Object.keys(fields)) {
+      previousFields[key as keyof Todo] = row[key] as any;
+    }
+
+    // Apply updates
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) {
+        this.store.setCell("todos", todoId, key, value as any);
+      }
+    }
+
+    return { id: todoId, previousFields };
+  }
+
+  async markTodoUndone(todoId: string): Promise<Todo> {
+    const row = this.store.getRow("todos", todoId);
+    if (!row) {
+      throw new Error(`Todo not found: ${todoId}`);
+    }
+
+    // Capture previous state for undo
+    const previousTodo: Todo = {
+      id: todoId,
+      list: row.list as string || "",
+      text: row.text as string || "",
+      done: row.done as boolean,
+      notes: row.notes as string,
+      date: row.date as string,
+      time: row.time as string,
+      url: row.url as string,
+      emoji: row.emoji as string,
+      email: row.email as string,
+      streetAddress: row.streetAddress as string,
+      number: row.number as number,
+      amount: row.amount as number,
+      fiveStarRating: row.fiveStarRating as number,
+      type: row.type as string,
+      category: row.category as string,
+    };
+
+    this.store.setCell("todos", todoId, "done", false);
+    return previousTodo;
+  }
+
+  async batchAddTodos(listId: string, items: BatchAddItem[]): Promise<string[]> {
+    const ids: string[] = [];
+
+    this.store.transaction(() => {
+      for (const item of items) {
+        const id = `todo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const fields = item.fields || {};
+
+        this.store.setRow("todos", id, {
+          list: listId,
+          text: item.text,
+          notes: fields.notes || "",
+          date: fields.date || "",
+          time: fields.time || "",
+          url: fields.url || "",
+          emoji: fields.emoji || "",
+          email: fields.email || "",
+          streetAddress: fields.streetAddress || "",
+          number: fields.number || 0,
+          amount: fields.amount || 0,
+          fiveStarRating: fields.fiveStarRating || 1,
+          done: false,
+          type: fields.type || "A",
+          category: fields.category || "",
+        });
+
+        ids.push(id);
+      }
+    });
+
+    return ids;
+  }
+
+  async batchUpdateTodos(updates: BatchUpdateItem[]): Promise<BatchUpdateResult[]> {
+    const results: BatchUpdateResult[] = [];
+
+    this.store.transaction(() => {
+      for (const update of updates) {
+        const row = this.store.getRow("todos", update.id);
+        if (!row) continue;
+
+        // Capture previous values for undo
+        const previousFields: Partial<Todo> = {};
+        for (const key of Object.keys(update.fields)) {
+          previousFields[key as keyof Todo] = row[key] as any;
+        }
+        results.push({ id: update.id, previousFields });
+
+        // Apply updates
+        for (const [key, value] of Object.entries(update.fields)) {
+          if (value !== undefined) {
+            this.store.setCell("todos", update.id, key, value as any);
+          }
+        }
+      }
+    });
+
+    return results;
+  }
+
+  async batchDeleteTodos(todoIds: string[]): Promise<void> {
+    this.store.transaction(() => {
+      for (const id of todoIds) {
+        this.store.delRow("todos", id);
+      }
+    });
+  }
+
+  async restoreTodo(todo: Todo): Promise<void> {
+    const { id, ...fields } = todo;
+    this.store.setRow("todos", id, {
+      list: fields.list || "",
+      text: fields.text || "",
+      notes: fields.notes || "",
+      date: fields.date || "",
+      time: fields.time || "",
+      url: fields.url || "",
+      emoji: fields.emoji || "",
+      email: fields.email || "",
+      streetAddress: fields.streetAddress || "",
+      number: fields.number || 0,
+      amount: fields.amount || 0,
+      fiveStarRating: fields.fiveStarRating || 1,
+      done: fields.done || false,
+      type: fields.type || "A",
+      category: fields.category || "",
+    });
   }
 }

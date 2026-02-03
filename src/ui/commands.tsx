@@ -165,6 +165,52 @@ export const ListCreateView: React.FC<ListCreateViewProps> = ({ getData }) => {
   );
 };
 
+// === List Update View ===
+
+interface ListUpdateData {
+  id: string;
+  name: string;
+}
+
+interface ListUpdateViewProps {
+  getData: () => Promise<ListUpdateData>;
+}
+
+export const ListUpdateView: React.FC<ListUpdateViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<ListUpdateData>
+      fetch={getData}
+      loadingText="Updating list..."
+      render={(data) => (
+        <Text color="green">Updated list "{data.name}" id:{data.id}</Text>
+      )}
+    />
+  );
+};
+
+// === List Delete View ===
+
+interface ListDeleteData {
+  id: string;
+  name: string;
+}
+
+interface ListDeleteViewProps {
+  getData: () => Promise<ListDeleteData>;
+}
+
+export const ListDeleteView: React.FC<ListDeleteViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<ListDeleteData>
+      fetch={getData}
+      loadingText="Deleting list..."
+      render={(data) => (
+        <Text color="green">Deleted list "{data.name}" id:{data.id}</Text>
+      )}
+    />
+  );
+};
+
 // === Compact Todo Display ===
 
 interface TodoLsData {
@@ -239,6 +285,197 @@ export const TodoDoneView: React.FC<TodoDoneViewProps> = ({ getData }) => {
       loadingText="Marking done..."
       render={(data) => (
         <Text color="green">Done: {data.id}</Text>
+      )}
+    />
+  );
+};
+
+// === Todo Undone View ===
+
+interface TodoUndoneData {
+  id: string;
+  text: string;
+}
+
+interface TodoUndoneViewProps {
+  getData: () => Promise<TodoUndoneData>;
+}
+
+export const TodoUndoneView: React.FC<TodoUndoneViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<TodoUndoneData>
+      fetch={getData}
+      loadingText="Marking not done..."
+      render={(data) => (
+        <Text color="green">Undone: "{data.text}" id:{data.id}</Text>
+      )}
+    />
+  );
+};
+
+// === Todo Update View ===
+
+interface TodoUpdateData {
+  id: string;
+  text: string;
+}
+
+interface TodoUpdateViewProps {
+  getData: () => Promise<TodoUpdateData>;
+}
+
+export const TodoUpdateView: React.FC<TodoUpdateViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<TodoUpdateData>
+      fetch={getData}
+      loadingText="Updating todo..."
+      render={(data) => (
+        <Text color="green">Updated: "{data.text}" id:{data.id}</Text>
+      )}
+    />
+  );
+};
+
+// === Delete View ===
+
+interface TodoDeleteData {
+  id: string;
+  text: string;
+}
+
+interface TodoDeleteViewProps {
+  getData: () => Promise<TodoDeleteData>;
+}
+
+export const TodoDeleteView: React.FC<TodoDeleteViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<TodoDeleteData>
+      fetch={getData}
+      loadingText="Deleting..."
+      render={(data) => (
+        <Text color="green">Deleted: "{data.text}" id:{data.id}</Text>
+      )}
+    />
+  );
+};
+
+// === Batch Add View ===
+
+interface TodoBatchAddData {
+  ids: string[];
+  listName: string;
+}
+
+interface TodoBatchAddViewProps {
+  getData: () => Promise<TodoBatchAddData>;
+}
+
+export const TodoBatchAddView: React.FC<TodoBatchAddViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<TodoBatchAddData>
+      fetch={getData}
+      loadingText="Adding todos..."
+      render={(data) => (
+        <Box flexDirection="column">
+          <Text color="green">Added {data.ids.length} todos to "{data.listName}"</Text>
+          {data.ids.map((id) => (
+            <Text key={id} color="gray">  id:{id}</Text>
+          ))}
+        </Box>
+      )}
+    />
+  );
+};
+
+// === Batch Update View ===
+
+interface TodoBatchUpdateData {
+  count: number;
+}
+
+interface TodoBatchUpdateViewProps {
+  getData: () => Promise<TodoBatchUpdateData>;
+}
+
+export const TodoBatchUpdateView: React.FC<TodoBatchUpdateViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<TodoBatchUpdateData>
+      fetch={getData}
+      loadingText="Updating todos..."
+      render={(data) => (
+        <Text color="green">Updated {data.count} todos</Text>
+      )}
+    />
+  );
+};
+
+// === Undo View ===
+
+interface UndoData {
+  count: number;
+  descriptions: string[];
+}
+
+interface UndoViewProps {
+  getData: () => Promise<UndoData>;
+}
+
+export const UndoView: React.FC<UndoViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<UndoData>
+      fetch={getData}
+      loadingText="Undoing..."
+      render={(data) => (
+        <Box flexDirection="column">
+          <Text color="green">Undid {data.count} operation(s)</Text>
+          {data.descriptions.map((desc, i) => (
+            <Text key={i} color="gray">  • {desc}</Text>
+          ))}
+        </Box>
+      )}
+    />
+  );
+};
+
+// === History View ===
+
+interface HistoryEntry {
+  id: string;
+  timestamp: number;
+  operation: string;
+  description: string;
+}
+
+interface HistoryData {
+  entries: HistoryEntry[];
+}
+
+interface HistoryViewProps {
+  getData: () => Promise<HistoryData>;
+}
+
+export const HistoryView: React.FC<HistoryViewProps> = ({ getData }) => {
+  return (
+    <AsyncView<HistoryData>
+      fetch={getData}
+      loadingText="Loading history..."
+      render={(data) => (
+        <Box flexDirection="column">
+          <Text bold>Undo History ({data.entries.length} entries):</Text>
+          {data.entries.length === 0 ? (
+            <Text color="gray">No operations to undo.</Text>
+          ) : (
+            data.entries.map((entry, i) => {
+              const date = new Date(entry.timestamp);
+              const timeStr = date.toLocaleTimeString();
+              return (
+                <Text key={entry.id}>
+                  {i + 1}. [{timeStr}] {entry.description}
+                </Text>
+              );
+            })
+          )}
+        </Box>
       )}
     />
   );

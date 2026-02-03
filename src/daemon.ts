@@ -77,6 +77,18 @@ async function handleRequest(req: IpcRequest): Promise<IpcResponse> {
           (req.args[1] as any) || {}
         );
         break;
+      case "updateList":
+        result = await client.updateList(
+          req.args[0] as string,
+          req.args[1] as any
+        );
+        break;
+      case "deleteList":
+        result = await client.deleteList(req.args[0] as string);
+        break;
+      case "restoreList":
+        result = await client.restoreList(req.args[0] as any);
+        break;
       case "addTodo":
         result = await client.addTodo(
           req.args[0] as string,
@@ -86,6 +98,33 @@ async function handleRequest(req: IpcRequest): Promise<IpcResponse> {
         break;
       case "markTodoDone":
         result = await client.markTodoDone(req.args[0] as string);
+        break;
+      case "deleteTodo":
+        result = await client.deleteTodo(req.args[0] as string);
+        break;
+      case "updateTodo":
+        result = await client.updateTodo(
+          req.args[0] as string,
+          req.args[1] as any
+        );
+        break;
+      case "markTodoUndone":
+        result = await client.markTodoUndone(req.args[0] as string);
+        break;
+      case "batchAddTodos":
+        result = await client.batchAddTodos(
+          req.args[0] as string,
+          req.args[1] as any
+        );
+        break;
+      case "batchUpdateTodos":
+        result = await client.batchUpdateTodos(req.args[0] as any);
+        break;
+      case "batchDeleteTodos":
+        result = await client.batchDeleteTodos(req.args[0] as string[]);
+        break;
+      case "restoreTodo":
+        result = await client.restoreTodo(req.args[0] as any);
         break;
       default:
         return { id: req.id, error: `Unknown method: ${req.method}` };
