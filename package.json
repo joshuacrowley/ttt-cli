@@ -1,5 +1,5 @@
 {
-  "name": "ttt-cli",
+  "name": "@ojschwa/ttt-cli",
   "version": "0.1.1",
   "description": "TinyTalkingTodos CLI - Manage your todo lists from the command line",
   "type": "module",
